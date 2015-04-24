@@ -36,6 +36,7 @@ pkg
 bin/
 .bundle
 spec/rails
+spec/mongoid/rails
 *.sqlite3-journal
 Gemfile.lock
 Gemfile-*.lock

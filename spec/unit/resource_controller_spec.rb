@@ -200,7 +200,8 @@ describe Admin::PostsController, type: "controller" do
     subject { controller.send :collection }
 
     it {
-      is_expected.to be_a ActiveRecord::Relation
+      is_expected.to be_a ActiveRecord::Relation if defined?(ActiveRecord)
+      is_expected.to be_a Mongoid::Criteria if defined?(Mongoid)
     }
 
     it "returns a collection of posts" do

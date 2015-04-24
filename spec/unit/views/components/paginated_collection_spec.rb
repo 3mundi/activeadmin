@@ -171,26 +171,28 @@ describe ActiveAdmin::Views::PaginatedCollection do
       end
     end
 
-    context "when collection comes from find with GROUP BY" do
-      let(:collection) do
-        %w{Foo Foo Bar}.each {|title| Post.create(title: title) }
-        Post.select(:title).group(:title).page(1).per(5)
+    if defined?(ActiveRecord)
+      context "when collection comes from find with GROUP BY" do
+        let(:collection) do
+          %w{Foo Foo Bar}.each {|title| Post.create(title: title) }
+          Post.select(:title).group(:title).page(1).per(5)
+        end
+
+        it "should display proper message (including number and not hash)" do
+          expect(pagination.find_by_class('pagination_information').first.content).to eq "Displaying <b>all 2</b> posts"
+        end
       end
 
-      it "should display proper message (including number and not hash)" do
-        expect(pagination.find_by_class('pagination_information').first.content).to eq "Displaying <b>all 2</b> posts"
-      end
-    end
+      context "when collection with many pages comes from find with GROUP BY" do
+        let(:collection) do
+          %w{Foo Foo Bar Baz}.each {|title| Post.create(title: title) }
+          Post.select(:title).group(:title).page(1).per(2)
+        end
 
-    context "when collection with many pages comes from find with GROUP BY" do
-      let(:collection) do
-        %w{Foo Foo Bar Baz}.each {|title| Post.create(title: title) }
-        Post.select(:title).group(:title).page(1).per(2)
-      end
-
-      it "should display proper message (including number and not hash)" do
-        expect(pagination.find_by_class('pagination_information').first.content.gsub('&nbsp;',' ')).
-          to eq "Displaying posts <b>1 - 2</b> of <b>3</b> in total"
+        it "should display proper message (including number and not hash)" do
+          expect(pagination.find_by_class('pagination_information').first.content.gsub('&nbsp;',' ')).
+            to eq "Displaying posts <b>1 - 2</b> of <b>3</b> in total"
+        end
       end
     end
 

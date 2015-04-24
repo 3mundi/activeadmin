@@ -36,7 +36,8 @@ When /^(?:I )press "([^"]*)"$/ do |button|
 end
 
 When /^(?:I )follow "([^"]*)"$/ do |link|
-  first(:link, link).click
+  # sometimes `first(:link, link)` returns completely different link
+  find_link(link).click rescue first(:link, link).click
 end
 
 When /^(?:I )fill in "([^"]*)" with "([^"]*)"$/ do |field, value|

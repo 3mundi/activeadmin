@@ -1,0 +1,20 @@
+test:
+  sessions:
+    default:
+      database: activeadmin_test
+      hosts:
+        - localhost:27017
+
+cucumber:
+  sessions:
+    default:
+      database: activeadmin_cucumber_test
+      hosts:
+        - localhost:27017
+
+cucumber_with_reloading:
+  sessions:
+    default:
+      database: cucumber_with_preloading_test
+      hosts:
+        - localhost:27017

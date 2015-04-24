@@ -13,6 +13,8 @@ require 'jquery-ui-rails'
 require 'coffee-rails'
 require 'arbre'
 
+require 'active_model'
+
 require 'active_admin/helpers/i18n'
 
 module ActiveAdmin

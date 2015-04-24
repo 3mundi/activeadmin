@@ -23,7 +23,12 @@ describe ActiveAdmin::OrderClause do
     end
 
     specify '#to_sql prepends table name' do
-      expect(subject.to_sql(config)).to eq '"posts"."id" asc'
+      if defined?(ActiveRecord)
+        expect(subject.to_sql(config)).to eq '"posts"."id" asc'
+      end
+      if defined?(Mongoid)
+        expect(subject.to_sql(config)).to eq 'id asc'
+      end
     end
   end
 
@@ -43,10 +48,15 @@ describe ActiveAdmin::OrderClause do
     end
 
     specify '#to_sql' do
-      expect(subject.to_sql(config)).to eq '"virtual_column" asc'
+      if defined?(ActiveRecord)
+        expect(subject.to_sql(config)).to eq '"virtual_column" asc'
+      else
+        expect(subject.to_sql(config)).to eq 'virtual_column asc'
+      end
     end
   end
 
+  defined?(ActiveRecord) and
   describe "hstore_col->'field'_desc" do
     let(:clause) { "hstore_col->'field'_desc" }
 

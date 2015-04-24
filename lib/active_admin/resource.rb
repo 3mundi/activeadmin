@@ -94,15 +94,27 @@ module ActiveAdmin
     end
 
     def resource_table_name
-      resource_class.quoted_table_name
+      if defined?(ActiveRecord)
+        resource_class.quoted_table_name
+      else
+        resource_class.collection_name.to_s.inspect
+      end
     end
 
     def resource_column_names
-      resource_class.column_names
+      if defined?(ActiveRecord)
+        resource_class.column_names
+      else
+        resource_class.fields.map(&:first)
+      end
     end
 
     def resource_quoted_column_name(column)
-      resource_class.connection.quote_column_name(column)
+      if resource_class.respond_to? :connection
+        resource_class.connection.quote_column_name(column)
+      elsif defined?(Mongoid)
+        column.to_s.inspect
+      end
     end
 
     # Clears all the member actions this resource knows about
@@ -144,14 +156,35 @@ module ActiveAdmin
     end
 
     def find_resource(id)
-      resource = resource_class.public_send(method_for_find, id)
+      resource = if defined?(ActiveRecord)
+        resource_class.public_send(method_for_find, id)
+      else
+        method, finder_key = method_for_find_mongoid
+        if finder_key
+          resource_class.public_send(method, finder_key => id)
+        else
+          resource_class.public_send(method, id)
+        end
+      end
       decorator_class ? decorator_class.new(resource) : resource
     end
 
     private
 
+    def method_for_find_mongoid
+      if finder = resources_configuration[:self][:finder]
+        if finder.to_s.starts_with?('find_by')
+          [ :find_by, finder.to_s.chomp('!')[8..-1].to_sym ]
+        else
+          finder
+        end
+      else
+        'find'
+      end
+    end
+
     def method_for_find
-      resources_configuration[:self][:finder] || :"find_by_#{resource_class.primary_key}"
+      resources_configuration[:self][:finder] || "find_by_#{resource_class.primary_key}"
     end
 
     def default_csv_builder

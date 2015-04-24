@@ -118,8 +118,19 @@ module ActiveAdmin
         end
       end
 
+      def default_mongoid_association_filters
+        if resource_class.respond_to?(:relations)
+          belongs_to = resource_class.relations.select { |name, r| r[:relation] == ::Mongoid::Relations::Referenced::In }
+          belongs_to.map { |name, r| r[:name] }
+        else
+          []
+        end
+      end
+
       # Returns a default set of filters for the associations
       def default_association_filters
+        return default_mongoid_association_filters if defined?(Mongoid)
+
         if resource_class.respond_to?(:reflect_on_all_associations)
           poly, not_poly = resource_class.reflect_on_all_associations.partition{ |r| r.macro == :belongs_to && r.options[:polymorphic] }
 

@@ -115,10 +115,12 @@ module ActiveAdmin
       end
 
       def is_boolean?(data, item)
-        if item.respond_to? :has_attribute?
+        if item.respond_to? :column_for_attribute # ActiveRecord
           item.has_attribute?(data) &&
             item.column_for_attribute(data) &&
             item.column_for_attribute(data).type == :boolean
+        elsif item.class.respond_to? :fields # Mongoid 4.0
+          field = item.class.fields[data.to_s] and field && field.type == ::Mongoid::Boolean
         end
       end
 
@@ -177,7 +179,11 @@ module ActiveAdmin
           if @options.has_key?(:sortable)
             !!@options[:sortable]
           elsif @resource_class
-            @resource_class.column_names.include?(sort_column_name)
+            if defined?(ActiveRecord)
+              @resource_class.column_names.include?(sort_column_name)
+            else
+              !!@resource_class.fields[sort_column_name]
+            end
           else
             @title.present?
           end

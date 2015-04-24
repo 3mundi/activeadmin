@@ -37,6 +37,9 @@ module ActiveAdmin
       end ||
       if obj.respond_to? :base_class
         resources.detect{ |r| r.resource_class.to_s == obj.base_class.to_s }
+      end ||
+      if obj.respond_to? :descendants # Mongoid
+        resources.detect{ |r| r.resource_class.descendants.include?(obj) }
       end
     end
 

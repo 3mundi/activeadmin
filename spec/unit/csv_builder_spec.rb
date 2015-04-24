@@ -187,6 +187,7 @@ describe ActiveAdmin::CSVBuilder do
 
   context "build csv using the supplied order" do
     before do
+      Post.destroy_all
       @post1 = Post.create!(title: "Hello1", published_at: Date.today - 2.day )
       @post2 = Post.create!(title: "Hello2", published_at: Date.today - 1.day )
     end

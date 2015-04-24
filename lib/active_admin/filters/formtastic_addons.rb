@@ -16,11 +16,20 @@ module ActiveAdmin
       end
 
       def reflection_for(method)
-        klass.reflect_on_association(method) if klass.respond_to? :reflect_on_association
+        return nil unless klass.respond_to? :reflect_on_association
+        if defined?(Mongoid)
+          klass.reflect_on_association(method.to_s.chomp('_id'))
+        else
+          klass.reflect_on_association(method)
+        end
       end
 
       def column_for(method)
-        klass.columns_hash[method.to_s] if klass.respond_to? :columns_hash
+        if defined?(Mongoid) && klass.respond_to?(:fields)
+          method.to_s == 'id' ? klass.fields['_id'] : klass.fields[method.to_s]
+        elsif klass.respond_to? :columns_hash
+          klass.columns_hash[method.to_s]
+        end
       end
 
       def column
@@ -37,8 +46,12 @@ module ActiveAdmin
       end
 
       def polymorphic_foreign_type?(method)
-        klass.reflect_on_all_associations.select{ |r| r.macro == :belongs_to && r.options[:polymorphic] }
-          .map(&:foreign_type).include? method.to_s
+        if defined?(ActiveRecord)
+          klass.reflect_on_all_associations.select{ |r| r.macro == :belongs_to && r.options[:polymorphic] }
+            .map(&:foreign_type).include? method.to_s
+        else
+          false
+        end
       end
 
       #

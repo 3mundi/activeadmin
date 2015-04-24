@@ -14,7 +14,8 @@ module ActiveAdmin
       @config ||= Resource.new(namespace, Category, options)
     end
 
-    module ::Mock class Resource < ActiveRecord::Base; end; end
+    module ::Mock class Resource < ActiveRecord::Base; end; end if defined?(ActiveRecord)
+    module ::Mock class Resource; include Mongoid::Document; end; end if defined?(Mongoid)
     module NoActiveModel class Resource; end; end
 
     describe "singular resource name" do

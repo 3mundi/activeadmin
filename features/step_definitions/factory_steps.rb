@@ -11,7 +11,11 @@ Given /^(a|\d+)( published)?( unstarred|starred)? posts?(?: with the title "([^"
   category  = Category.where(name: category_name).first_or_create if category_name
   title   ||= "Hello World %i"
   count.times do |i|
-    Post.create! title: title % i, body: body, author: author, published_at: published, custom_category_id: category.try(:id), starred: starred
+    if defined?(ActiveRecord)
+      Post.create! title: title % i, body: body, author: author, published_at: published, custom_category_id: category.try(:id), starred: starred
+    elsif defined?(Mongoid)
+      Post.create! title: title % i, body: body, author: author, published_at: published, category_id: category.try(:id), starred: starred
+    end
   end
 end
 

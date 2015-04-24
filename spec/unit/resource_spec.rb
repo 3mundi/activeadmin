@@ -232,7 +232,12 @@ module ActiveAdmin
       let(:resource) { namespace.register(Post) }
       let(:post) { double }
       before do
-        allow(Post).to receive(:find_by_id).with('12345') { post }
+        if defined?(ActiveRecord)
+          allow(Post).to receive(:find_by_id).with('12345') { post }
+        end
+        if defined?(Mongoid)
+          allow(Post).to receive(:find).with('12345') { post }
+        end
       end
 
       it 'can find the resource' do
@@ -246,15 +251,17 @@ module ActiveAdmin
         end
       end
 
-      context 'when using a nonstandard primary key' do
-        let(:different_post) { double }
-        before do
-          allow(Post).to receive(:primary_key).and_return 'something_else'
-          allow(Post).to receive(:find_by_something_else).with('55555') { different_post }
-        end
+      if defined?(ActiveRecord)
+        context 'when using a nonstandard primary key' do
+          let(:different_post) { double }
+          before do
+            allow(Post).to receive(:primary_key).and_return 'something_else'
+            allow(Post).to receive(:find_by_something_else).with('55555') { different_post }
+          end
 
-        it 'can find the post by the custom primary key' do
-          expect(resource.find_resource('55555')).to eq different_post
+          it 'can find the post by the custom primary key' do
+            expect(resource.find_resource('55555')).to eq different_post
+          end
         end
       end
 
@@ -268,7 +275,12 @@ module ActiveAdmin
         end
 
         it 'can find the post by controller finder' do
-          allow(Post).to receive(:find_by_title!).with('title-name').and_return(post)
+          if defined?(ActiveRecord)
+            allow(Post).to receive(:find_by_title!).with('title-name').and_return(post)
+          end
+          if defined?(Mongoid)
+            allow(Post).to receive(:find_by).with(title: 'title-name').and_return(post)
+          end
 
           expect(resource.find_resource('title-name')).to eq post
         end

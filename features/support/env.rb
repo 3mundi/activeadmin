@@ -8,7 +8,12 @@ ENV["RAILS_ENV"] ||= "cucumber"
 
 require File.expand_path('../../../spec/spec_helper', __FILE__)
 
-ENV['RAILS_ROOT'] = File.expand_path("../../../spec/rails/rails-#{ENV["RAILS"]}", __FILE__)
+ENV['RAILS_ROOT'] = if ENV['MONGOID']
+  File.expand_path("../../../spec/mongoid/rails/rails-#{ENV['RAILS']}", __FILE__)
+else
+  File.expand_path("../../../spec/rails/rails-#{ENV["RAILS"]}", __FILE__)
+end
+
 
 # Create the test app if it doesn't exists
 unless File.exists?(ENV['RAILS_ROOT'])
@@ -16,7 +21,8 @@ unless File.exists?(ENV['RAILS_ROOT'])
 end
 
 require 'rails'
-require 'active_record'
+require 'active_record' unless ENV['MONGOID']
+require 'mongoid' if ENV['MONGOID']
 require 'active_admin'
 require 'devise'
 ActiveAdmin.application.load_paths = [ENV['RAILS_ROOT'] + "/app/admin"]
@@ -81,7 +87,7 @@ ActionController::Base.allow_rescue = false
 # after each scenario, which can lead to hard-to-debug failures in
 # subsequent scenarios. If you do this, we recommend you create a Before
 # block that will explicitly put your database in a known state.
-Cucumber::Rails::World.use_transactional_fixtures = false
+Cucumber::Rails::World.use_transactional_fixtures = false unless ENV['MONGOID']
 # How to clean your database when transactions are turned off. See
 # http://github.com/bmabey/database_cleaner for more info.
 if defined?(ActiveRecord::Base)
@@ -91,6 +97,10 @@ if defined?(ActiveRecord::Base)
     DatabaseCleaner.strategy = :truncation
   rescue LoadError => ignore_if_database_cleaner_not_present
   end
+end
+
+if defined?(Mongoid)
+  Mongoid.default_session.drop
 end
 
 # Warden helpers to speed up login

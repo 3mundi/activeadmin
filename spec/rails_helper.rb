@@ -90,15 +90,25 @@ module ActiveAdminIntegrationSpecHelper
 end
 
 ENV['RAILS_ENV'] = 'test'
-ENV['RAILS_ROOT'] = File.expand_path("../rails/rails-#{ENV['RAILS']}", __FILE__)
+
+ENV['RAILS_ROOT'] = if ENV['MONGOID']
+  File.expand_path("../mongoid/rails/rails-#{ENV['RAILS']}", __FILE__)
+else
+  File.expand_path("../rails/rails-#{ENV['RAILS']}", __FILE__)
+end
 
 # Create the test app if it doesn't exists
 unless File.exists?(ENV['RAILS_ROOT'])
-  system 'rake setup'
+  if ENV['MONGOID']
+    system 'rake mongoid:setup'
+  else
+    system 'rake setup'
+  end
 end
 
 require 'rails'
-require 'active_record'
+require 'active_record' unless ENV['MONGOID']
+require 'mongoid' if ENV['MONGOID']
 require 'active_admin'
 require 'devise'
 ActiveAdmin.application.load_paths = [ENV['RAILS_ROOT'] + "/app/admin"]
@@ -122,8 +132,8 @@ ActiveAdmin.application.current_user_method = false
 ENV["RAILS_ASSET_ID"] = ''
 
 RSpec.configure do |config|
-  config.use_transactional_fixtures = true
-  config.use_instantiated_fixtures = false
+  config.use_transactional_fixtures = true unless ENV['MONGOID']
+  config.use_instantiated_fixtures = false unless ENV['MONGOID']
   config.include Devise::TestHelpers, type: :controller
   config.render_views = false
   config.filter_run focus: true

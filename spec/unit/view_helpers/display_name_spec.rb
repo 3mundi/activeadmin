@@ -56,13 +56,18 @@ describe "display_name" do
 
       it "should show the model name, plus the ID if in use" do
         subject = Tagging.create!
-        expect(display_name subject).to eq "Tagging #1"
+        expect(display_name subject).to eq "Tagging ##{subject.id}"
       end
 
       it "should translate the model name" do
-        with_translation activerecord: {models: {tagging: {one: "Different"}}} do
+        i18n_namespace = if defined?(ActiveRecord)
+          :activerecord
+        elsif defined?(Mongoid)
+          :mongoid
+        end
+        with_translation i18n_namespace => {models: {tagging: {one: "Different"}}} do
           subject = Tagging.create!
-          expect(display_name subject).to eq "Different #1"
+          expect(display_name subject).to eq "Different ##{subject.id}"
         end
       end
     end

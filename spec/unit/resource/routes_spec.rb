@@ -7,7 +7,7 @@ module ActiveAdmin
     describe "route names" do
       context "when in the admin namespace" do
         let!(:config)  { ActiveAdmin.register Category }
-        let(:category) { Category.new { |c| c.id = 123 } }
+        let(:category) { Category.create }
 
         it "should return the route prefix" do
           expect(config.route_prefix).to eq 'admin'
@@ -18,7 +18,7 @@ module ActiveAdmin
         end
 
         it "should return the route instance path" do
-          expect(config.route_instance_path(category)).to eq '/admin/categories/123'
+          expect(config.route_instance_path(category)).to eq "/admin/categories/#{category.id}"
         end
       end
 
@@ -51,12 +51,8 @@ module ActiveAdmin
           end
         end
 
-        let :post do
-          Post.new do |p|
-            p.id = 3
-            p.category = Category.new{ |c| c.id = 1 }
-          end
-        end
+        let(:category) { Category.create }
+        let(:post) { Post.create(category: category) }
 
         before{ reload_routes! }
 
@@ -65,7 +61,7 @@ module ActiveAdmin
         end
 
         it "should nest the instance path" do
-          expect(config.route_instance_path(post)).to eq "/admin/categories/1/posts/3"
+          expect(config.route_instance_path(post)).to eq "/admin/categories/#{category.id}/posts/#{post.id}"
         end
       end
     end

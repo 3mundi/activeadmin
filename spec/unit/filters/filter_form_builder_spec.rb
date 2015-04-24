@@ -27,6 +27,8 @@ describe ActiveAdmin::Filters::ViewHelper do
     view
   end
 
+  let(:i18n_namespace) { defined?(ActiveRecord) ? :activerecord : :mongoid }
+
   def render_filter(search, filters)
     render_arbre_component({filter_args: [search, filters]}, helpers) do
       text_node active_admin_filters_form_for *assigns[:filter_args]
@@ -91,7 +93,7 @@ describe ActiveAdmin::Filters::ViewHelper do
     end
 
     it "should translate the label for text field" do
-      with_translation activerecord: {attributes: {post: {title: 'Name'}}} do
+      with_translation i18n_namespace => {attributes: {post: {title: 'Name'}}} do
         expect(body).to have_selector("label", text: "Name")
       end
     end
@@ -141,13 +143,15 @@ describe ActiveAdmin::Filters::ViewHelper do
         body
       end
 
-      it "should remove original ordering to prevent PostgreSQL error" do
-        expect(scope.object.klass).to receive(:reorder).with('title asc') {
-          m = double uniq: double(pluck: ['A Title'])
-          expect(m.uniq).to receive(:pluck).with :title
-          m
-        }
-        body
+      if defined?(ActiveRecord)
+        it "should remove original ordering to prevent PostgreSQL error" do
+          expect(scope.object.klass).to receive(:reorder).with('title asc') {
+            m = double uniq: double(pluck: ['A Title'])
+            expect(m.uniq).to receive(:pluck).with :title
+            m
+          }
+          body
+        end
       end
     end
   end
@@ -167,10 +171,10 @@ describe ActiveAdmin::Filters::ViewHelper do
   end
 
   describe "integer attribute" do
-    let(:body) { Capybara.string(filter :id) }
+    let(:body) { Capybara.string(filter :foo_id) }
 
     it "should generate a select option for equal to" do
-      expect(body).to have_selector("option[value=id_equals]", text: "Equals")
+      expect(body).to have_selector("option[value=foo_id_equals]", text: "Equals")
     end
     it "should generate a select option for greater than" do
       expect(body).to have_selector("option", text: "Greater than")
@@ -179,12 +183,12 @@ describe ActiveAdmin::Filters::ViewHelper do
       expect(body).to have_selector("option", text: "Less than")
     end
     it "should generate a text field for input" do
-      expect(body).to have_selector("input[name='q[id_equals]']")
+      expect(body).to have_selector("input[name='q[foo_id_equals]']")
     end
     it "should select the option which is currently being filtered" do
-      scope = Post.search id_greater_than: 1
-      body = Capybara.string(render_filter scope, id: {})
-      expect(body).to have_selector("option[value=id_greater_than][selected=selected]", text: "Greater than")
+      scope = Post.search foo_id_greater_than: 1
+      body = Capybara.string(render_filter scope, foo_id: {})
+      expect(body).to have_selector("option[value=foo_id_greater_than][selected=selected]", text: "Greater than")
     end
   end
 
@@ -204,7 +208,7 @@ describe ActiveAdmin::Filters::ViewHelper do
       end
 
       it "should translate the label for boolean field" do
-        with_translation activerecord: {attributes: {post: {starred: 'Faved'}}} do
+        with_translation i18n_namespace => {attributes: {post: {starred: 'Faved'}}} do
           expect(body).to have_selector("label", text: "Faved")
         end
       end
@@ -235,10 +239,18 @@ describe ActiveAdmin::Filters::ViewHelper do
     context "when given as the _id attribute name" do
       let(:body) { Capybara.string(filter :author_id) }
 
-      it "should generate a numeric filter" do
-        expect(body).to have_selector("label", text: "Author") # really this should be Author ID :/)
-        expect(body).to have_selector("option[value=author_id_less_than]")
-        expect(body).to have_selector("input#q_author_id[name='q[author_id_equals]']")
+      if defined?(ActiveRecord)
+        it "should generate a numeric filter" do
+          expect(body).to have_selector("label", text: "Author") # really this should be Author ID :/)
+          expect(body).to have_selector("option[value=author_id_less_than]")
+          expect(body).to have_selector("input#q_author_id[name='q[author_id_equals]']")
+        end
+      end
+      if defined?(Mongoid)
+        it "should generate a select filter" do
+          expect(body).to have_selector("label", text: "Author")
+          expect(body).to have_selector("select#q_author_id[name='q[author_id_eq]']")
+        end
       end
     end
 
@@ -282,20 +294,22 @@ describe ActiveAdmin::Filters::ViewHelper do
       end
     end
 
-    context "when polymorphic relationship" do
-      let(:scope) { ActiveAdmin::Comment.search }
-      it "should raise an error if a collection isn't provided" do
-        expect { filter :resource }.to raise_error \
-          Formtastic::PolymorphicInputWithoutCollectionError
+    if defined?(ActiveRecord)
+      context "when polymorphic relationship" do
+        let(:scope) { ActiveAdmin::Comment.search }
+        it "should raise an error if a collection isn't provided" do
+          expect { filter :resource }.to raise_error \
+            Formtastic::PolymorphicInputWithoutCollectionError
+        end
       end
-    end
 
-    context "when using a custom foreign key" do
-      let(:scope) { Post.search }
-      let(:body)  { Capybara.string(filter :category) }
-      it "should ignore that foreign key and let Ransack handle it" do
-        expect(Post.reflect_on_association(:category).foreign_key).to eq :custom_category_id
-        expect(body).to have_selector("select[name='q[category_id_eq]']")
+      context "when using a custom foreign key" do
+        let(:scope) { Post.search }
+        let(:body)  { Capybara.string(filter :category) }
+        it "should ignore that foreign key and let Ransack handle it" do
+          expect(Post.reflect_on_association(:category).foreign_key).to eq :custom_category_id
+          expect(body).to have_selector("select[name='q[category_id_eq]']")
+        end
       end
     end
   end # belongs to
@@ -328,29 +342,31 @@ describe ActiveAdmin::Filters::ViewHelper do
     let!(:john) { User.create first_name: "John", last_name: "Doe", username: "john_doe" }
     let!(:jane) { User.create first_name: "Jane", last_name: "Doe", username: "jane_doe" }
 
-    context "when given as the name of the relationship" do
-      let(:body) { Capybara.string(filter :authors) }
+    if defined?(ActiveRecord)
+      context "when given as the name of the relationship" do
+        let(:body) { Capybara.string(filter :authors) }
 
-      it "should generate a select" do
-        expect(body).to have_selector("select[name='q[posts_author_id_eq]']")
+        it "should generate a select" do
+          expect(body).to have_selector("select[name='q[posts_author_id_eq]']")
+        end
+
+        it "should set the default text to 'Any'" do
+          expect(body).to have_selector("option[value='']", text: "Any")
+        end
+
+        it "should create an option for each related object" do
+          expect(body).to have_selector("option[value='#{john.id}']", text: "John Doe")
+          expect(body).to have_selector("option[value='#{jane.id}']", text: "Jane Doe")
+        end
       end
 
-      it "should set the default text to 'Any'" do
-        expect(body).to have_selector("option[value='']", text: "Any")
-      end
+      context "as check boxes" do
+        let(:body) { Capybara.string(filter :authors, as: :check_boxes) }
 
-      it "should create an option for each related object" do
-        expect(body).to have_selector("option[value='#{john.id}']", text: "John Doe")
-        expect(body).to have_selector("option[value='#{jane.id}']", text: "Jane Doe")
-      end
-    end
-
-    context "as check boxes" do
-      let(:body) { Capybara.string(filter :authors, as: :check_boxes) }
-
-      it "should create a check box for each related object" do
-        expect(body).to have_selector("input[name='q[posts_author_id_in][]'][type=checkbox][value='#{john.id}']")
-        expect(body).to have_selector("input[name='q[posts_author_id_in][]'][type=checkbox][value='#{jane.id}']")
+        it "should create a check box for each related object" do
+          expect(body).to have_selector("input[name='q[posts_author_id_in][]'][type=checkbox][value='#{john.id}']")
+          expect(body).to have_selector("input[name='q[posts_author_id_in][]'][type=checkbox][value='#{jane.id}']")
+        end
       end
     end
   end

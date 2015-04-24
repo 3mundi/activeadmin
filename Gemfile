@@ -15,6 +15,11 @@ gem 'devise'
 gem 'draper'
 gem 'pundit'
 
+if ENV['MONGOID']
+  gem 'mongoid', '~> 4.0.0'
+  gem 'ransack', github: 'activerecord-hackery/ransack', branch: 'master'
+end
+
 # Utility gems used in both development & test environments
 gem 'rake', require: false
 gem 'parallel_tests'
