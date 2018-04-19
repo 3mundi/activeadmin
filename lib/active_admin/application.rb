@@ -130,7 +130,7 @@ module ActiveAdmin
     # Runs after the app's AA initializer
     def prepare!
       remove_active_admin_load_paths_from_rails_autoload_and_eager_load
-      attach_reloader
+      # attach_reloader
     end
 
     # Registers a brand new configuration for the given resource.
@@ -185,6 +185,7 @@ module ActiveAdmin
     # To reload everything simply call `ActiveAdmin.unload!`
     def load!
       unless loaded?
+        puts 'loading active admin!!'
         ActiveAdmin::Event.dispatch BeforeLoadEvent, self # before_load hook
         files.each{ |file| load file }                    # load files
         namespace(default_namespace)                      # init AA resources

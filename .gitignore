@@ -33,6 +33,7 @@ doc
 pkg
 
 ## Project (specific)
+vendor
 bin/
 .bundle
 spec/rails
