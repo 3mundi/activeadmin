@@ -5,29 +5,35 @@ Active Admin is a Ruby on Rails framework for creating elegant backends for webs
 [![Version         ](http://img.shields.io/gem/v/activeadmin.svg)                               ](https://rubygems.org/gems/activeadmin)
 [![Travis CI       ](http://img.shields.io/travis/activeadmin/activeadmin/master.svg)           ](https://travis-ci.org/activeadmin/activeadmin)
 [![Quality         ](http://img.shields.io/codeclimate/github/activeadmin/activeadmin.svg)      ](https://codeclimate.com/github/activeadmin/activeadmin)
-[![Coverage        ](http://img.shields.io/coveralls/activeadmin/activeadmin.svg)               ](https://coveralls.io/r/activeadmin/activeadmin)
-[![Gittip          ](http://img.shields.io/gittip/activeadmin.svg)                              ](https://gittip.com/activeadmin)
+[![Coverage        ](https://codecov.io/gh/activeadmin/activeadmin/branch/master/graph/badge.svg)](https://codecov.io/gh/activeadmin/activeadmin)
 [![Inch CI         ](http://inch-ci.org/github/activeadmin/activeadmin.svg?branch=master)       ](http://inch-ci.org/github/activeadmin/activeadmin)
-[![Stories in Ready](http://badge.waffle.io/activeadmin/activeadmin.png?label=ready&title=ready)](https://waffle.io/activeadmin/activeadmin)
 
 ## State of the project
 
 ### 1.0.0
 
 We're [currently working on 1.0.0](https://github.com/activeadmin/activeadmin/issues?milestone=18),
-which as far as dependencies, moves us from meta_search to Ransack and adds Rails 4 support.
+which as far as dependencies, moves us from meta_search to Ransack and adds Rails 4 & 5 support.
 
 You can get it by tracking master:
 ```ruby
-gem 'activeadmin', github: 'activeadmin'
+gem 'activeadmin', git: 'https://github.com/activeadmin/activeadmin'
 ```
 
 Or you can using rubygems:
 ```ruby
-gem 'activeadmin', '~> 1.0.0.pre1'
+gem 'activeadmin', '~> 1.0.0.pre5'
 ```
 
 *Keep in mind that during the time where we use `pre`-release label, things can break in each release!*
+
+### Rails 5
+
+Active Admin master has preliminary support for Rails 5. To give it a try, these Gemfile changes may be needed:
+
+```ruby
+gem 'inherited_resources', git: 'https://github.com/activeadmin/inherited_resources'
+```
 
 ### 0.6.x
 
@@ -36,17 +42,16 @@ still be maintained, and we will backport bug fixes into future 0.6.x releases. 
 to have to wait for a release, you can track the branch instead:
 
 ```ruby
-gem 'activeadmin', github: 'activeadmin', branch: '0-6-stable'
+gem 'activeadmin', git: 'https://github.com/activeadmin/activeadmin', branch: '0-6-stable'
 ```
 
 ## Documentation
 
-Please note that <http://activeadmin.info> is out of date. For the latest docs, check out the
-Github [docs](https://github.com/activeadmin/activeadmin/tree/master/docs#activeadmin-documentation) and the [wiki](https://github.com/activeadmin/activeadmin/wiki).
+For the latest docs, check out the Github <http://activeadmin.info> and the [wiki](https://github.com/activeadmin/activeadmin/wiki).
 
 ## Links
 
-* Website: <http://www.activeadmin.info> (out of date)
+* Website: <http://activeadmin.info>
 * Live demo: <http://demo.activeadmin.info/admin>
 * Documentation
   * Guides: <https://github.com/activeadmin/activeadmin/tree/master/docs>
@@ -61,7 +66,7 @@ Github [docs](https://github.com/activeadmin/activeadmin/tree/master/docs#active
 
 ## Getting started
 
-Check out [the docs](https://github.com/activeadmin/activeadmin/blob/master/docs/0-installation.md)!
+Check out [the docs](http://activeadmin.info/0-installation.html)!
 
 ## Need help?
 
@@ -72,8 +77,7 @@ Ask us in IRC ([#activeadmin](https://webchat.freenode.net/?channels=activeadmin
 ## Want to contribute?
 
 The [contributing guide](https://github.com/activeadmin/activeadmin/blob/master/CONTRIBUTING.md)
-is a good place to start. If you have questions, feel free to ask
-[@seanlinsley](https://twitter.com/seanlinsley) or [@captainhagbard](https://twitter.com/captainhagbard).
+is a good place to start. If you have questions, feel free to ask.
 
 ## Dependencies
 
@@ -92,5 +96,5 @@ Tool                  | Description
 [Devise]: https://github.com/plataformatec/devise
 [Formtastic]: https://github.com/justinfrench/formtastic
 [Inherited Resources]: https://github.com/josevalim/inherited_resources
-[Kaminari]: https://github.com/amatsuda/kaminari
+[Kaminari]: https://github.com/kaminari/kaminari
 [Ransack]: https://github.com/activerecord-hackery/ransack

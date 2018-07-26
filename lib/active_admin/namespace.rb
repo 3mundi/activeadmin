@@ -49,7 +49,7 @@ module ActiveAdmin
       reset_menu!
 
       # Dispatch a registration event
-      ActiveAdmin::Event.dispatch ActiveAdmin::Resource::RegisterEvent, config
+      ActiveSupport::Notifications.publish ActiveAdmin::Resource::RegisterEvent, config
 
       # Return the config
       config
@@ -194,7 +194,7 @@ module ActiveAdmin
       resources.each do |resource|
         parent = (module_name || 'Object').constantize
         name   = resource.controller_name.split('::').last
-        parent.send(:remove_const, name) if parent.const_defined? name
+        parent.send(:remove_const, name) if parent.const_defined?(name, false)
 
         # Remove circular references
         resource.controller.active_admin_config = nil

@@ -1,10 +1,14 @@
 require 'rails_helper'
 
-describe ActiveAdmin::Views::TableFor do
+RSpec.describe ActiveAdmin::Views::TableFor do
   describe "creating with the dsl" do
 
     let(:collection) do
-      [Post.new(title: "First Post", starred: true), Post.new(title: "Second Post"), Post.new(title: "Third Post", starred: false)]
+      [
+        Post.new(title: "First Post", starred: true),
+        Post.new(title: "Second Post"),
+        Post.new(title: "Third Post", starred: false)
+      ]
     end
 
     let(:assigns){ { collection: collection } }
@@ -171,7 +175,8 @@ describe ActiveAdmin::Views::TableFor do
 
       [ "<span>First Post</span>",
         "<span>Second Post</span>",
-        "<span>Third Post</span>" ].each_with_index do |content, index|
+        "<span>Third Post</span>"
+      ].each_with_index do |content, index|
         it "should create a cell with #{content}" do
           expect(table.find_by_tag("td")[index].content.strip).to eq content
         end
@@ -197,24 +202,22 @@ describe ActiveAdmin::Views::TableFor do
       end
     end
 
-
     context "when creating many columns with symbols, blocks and strings" do
       let(:table) do
         render_arbre_component assigns, helpers do
           table_for(collection) do
             column "My Custom Title", :title
-            column :created_at , class:"datetime"
+            column :created_at, class: "datetime"
           end
         end
       end
 
-
-      it "should add a class to each table header  based on class option or the col name" do
+      it "should add a class to each header based on class option or the col name" do
         expect(table.find_by_tag("th").first.class_list.to_a.join(' ')).to eq "col col-my_custom_title"
         expect(table.find_by_tag("th").last.class_list.to_a.join(' ')).to eq "col datetime"
       end
 
-      it "should add a class to each cell based  on class option or the col name" do
+      it "should add a class to each cell based on class option or the col name" do
         expect(table.find_by_tag("td").first.class_list.to_a.join(' ')).to eq "col col-my_custom_title"
         expect(table.find_by_tag("td").last.class_list.to_a.join(' ')).to eq "col datetime"
       end
@@ -228,6 +231,7 @@ describe ActiveAdmin::Views::TableFor do
           end
         end
       end
+
       it "should render" do
         expect(table.find_by_tag("th").first.content).to eq "Title"
       end
@@ -242,6 +246,7 @@ describe ActiveAdmin::Views::TableFor do
           end
         end
       end
+
       it "should render" do
         expect(table.find_by_tag("th")[0].content).to eq "Foo"
         expect(table.find_by_tag("th")[1].content).to eq "Bar"
@@ -258,6 +263,7 @@ describe ActiveAdmin::Views::TableFor do
           end
         end
       end
+
       it "should render" do
         expect(table.find_by_tag("th")[0].content).to eq "Foo"
         expect(table.find_by_tag("td")[0].content).to eq "1"
@@ -301,10 +307,56 @@ describe ActiveAdmin::Views::TableFor do
       end
     end
 
+    context "when i18n option is specified" do
+      around do |example|
+        with_translation(activerecord: { attributes: { post: { title: "Name" } } }) do
+          example.call
+        end
+      end
+
+      let(:table) do
+        render_arbre_component assigns, helpers do
+          table_for(collection, i18n: Post) do
+            column :title
+          end
+        end
+      end
+
+      it "should use localized column key" do
+        expect(table.find_by_tag("th").first.content).to eq "Name"
+      end
+    end
+
+    context "when i18n option is not specified" do
+      around do |example|
+        with_translation(activerecord: { attributes: { post: { title: "Name" } } }) do
+          example.call
+        end
+      end
+
+      let(:collection) do
+        Post.create([
+          { title: "First Post", starred: true },
+          { title: "Second Post" },
+        ])
+        Post.where(starred: true)
+      end
+
+      let(:table) do
+        render_arbre_component assigns, helpers do
+          table_for(collection) do
+            column :title
+          end
+        end
+      end
+
+      it "should predict localized key based on AR collection klass" do
+        expect(table.find_by_tag("th").first.content).to eq "Name"
+      end
+    end
   end
 
   describe "column sorting" do
-
     def build_column(*args, &block)
       ActiveAdmin::Views::TableFor::Column.new(*args, &block)
     end

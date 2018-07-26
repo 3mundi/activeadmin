@@ -6,7 +6,8 @@
 * Rename `allow_comments` to `comments` for more consistent naming [#3695][] by [@pranas][]
 * JavaScript `window.AA` has been removed, use `window.ActiveAdmin` [#3606][] by [@timoschilling][]
 * `f.form_buffers` has been removed [#3486][] by [@varyonic][]
-* iconic has been removed [#3553][] by [@timoschilling][]
+* Iconic has been removed [#3553][] by [@timoschilling][]
+* `config.show_comments_in_menu` has been removed, see `config.comments_menu` [#4187][] by [@drn][]
 
 ### Enhancements
 
@@ -18,6 +19,10 @@
 
 #### Minor
 
+* Page supports belongs_to [#4759][] by [@Fivell][] and [@zorab47][]
+* Support for custom sorting strategies [#4768][] by [@Fivell][]
+* Stream CSV downloads as they're generated [#3038][] by [@craigmcnamara][]
+  * Disable streaming in development for easier debugging [#3535][] by [@seanlinsley][]
 * Improved code reloading [#3783][] by [@chancancode][]
 * Do not auto link to inaccessible actions [#3686][] by [@pranas][]
 * Allow to enable comments on per-resource basis [#3695][] by [@pranas][]
@@ -43,10 +48,13 @@
 ```ruby
 index download_links: ->{ can?(:view_all_download_links) || [:pdf] }
 ```
+* Comments menu can be customized via configuration passed to `config.comments_menu` [#4187][] by [@drn][]
+* Added `config.route_options` to namespace to customize routes [#4467][] by [@stereoscott[]]
 
 ### Security Fixes
 
 * Prevents potential DOS attack via Ruby symbols [#1926][] by [@seanlinsley][]
+  * [this isn't an issue for those using Ruby >= 2.2](http://rubykaigi.org/2014/presentation/S-NarihiroNakamura)
 
 ### Bug Fixes
 
@@ -54,6 +62,20 @@ index download_links: ->{ can?(:view_all_download_links) || [:pdf] }
 * "New" action item now only shows up on the index page bf659bc by [@seanlinsley][]
 * Fixes comment creation bug with aliased resources 9a082486 by [@seanlinsley][]
 * Fixes the deletion of `:if` and `:unless` from filters [#2523][] by [@PChambino][]
+
+### Deprecations
+
+* `ActiveAdmin::Event` (`ActiveAdmin::EventDispatcher`) [#3435][] by [@timoschilling][]
+  `ActiveAdmin::Event` will be removed in a future version, ActiveAdmin switched
+  to use `ActiveSupport::Notifications`.
+  NOTE: The blog parameters has changed:
+```ruby
+ActiveSupport::Notifications.subscribe ActiveAdmin::Application::BeforeLoadEvent do |event, *args|
+  # some code
+end
+
+ActiveSupport::Notifications.publish ActiveAdmin::Application::BeforeLoadEvent, "some data"
+```
 
 ## Previous Changes
 
@@ -70,20 +92,27 @@ Please check [0-6-stable](https://github.com/activeadmin/activeadmin/blob/0-6-st
 [#2541]: https://github.com/activeadmin/activeadmin/issues/2541
 [#2544]: https://github.com/activeadmin/activeadmin/issues/2544
 [#2545]: https://github.com/activeadmin/activeadmin/issues/2545
+[#3038]: https://github.com/activeadmin/activeadmin/issues/3038
 [#3075]: https://github.com/activeadmin/activeadmin/issues/3075
 [#3463]: https://github.com/activeadmin/activeadmin/issues/3463
 [#3464]: https://github.com/activeadmin/activeadmin/issues/3464
 [#3486]: https://github.com/activeadmin/activeadmin/issues/3486
 [#3519]: https://github.com/activeadmin/activeadmin/issues/3519
+[#3535]: https://github.com/activeadmin/activeadmin/issues/3535
 [#3553]: https://github.com/activeadmin/activeadmin/issues/3553
 [#3606]: https://github.com/activeadmin/activeadmin/issues/3606
 [#3686]: https://github.com/activeadmin/activeadmin/issues/3686
 [#3695]: https://github.com/activeadmin/activeadmin/issues/3695
 [#3731]: https://github.com/activeadmin/activeadmin/issues/3731
 [#3783]: https://github.com/activeadmin/activeadmin/issues/3783
+[#4187]: https://github.com/activeadmin/activeadmin/issues/4187
+[#4759]: https://github.com/activeadmin/activeadmin/pull/4759
+[#4768]: https://github.com/activeadmin/activeadmin/pull/4768
 [@PChambino]: https://github.com/PChambino
 [@TimPetricola]: https://github.com/TimPetricola
 [@chancancode]: https://github.com/chancancode
+[@craigmcnamara]: https://github.com/craigmcnamara
+[@drn]: https://github.com/drn
 [@dmitry]: https://github.com/dmitry
 [@gonzedge]: https://github.com/gonzedge
 [@johnnyshields]: https://github.com/johnnyshields
@@ -94,3 +123,4 @@ Please check [0-6-stable](https://github.com/activeadmin/activeadmin/blob/0-6-st
 [@timoschilling]: https://github.com/timoschilling
 [@varyonic]: https://github.com/varyonic
 [@zorab47]: https://github.com/zorab47
+[@Fivell]: https://github.com/Fivell

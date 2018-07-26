@@ -11,7 +11,7 @@ module ActiveAdmin
       source_root File.expand_path("../templates", __FILE__)
 
       def copy_initializer
-        @underscored_user_name = name.underscore
+        @underscored_user_name = name.underscore.gsub('/', '_')
         @use_authentication_method = options[:users].present?
         template 'active_admin.rb.erb', 'config/initializers/active_admin.rb'
       end
@@ -38,7 +38,7 @@ module ActiveAdmin
       end
 
       def create_migrations
-        migration_template 'migrations/create_active_admin_comments.rb', 'db/migrate/create_active_admin_comments.rb'
+        migration_template 'migrations/create_active_admin_comments.rb.erb', 'db/migrate/create_active_admin_comments.rb'
       end
     end
   end

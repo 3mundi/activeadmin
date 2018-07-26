@@ -1,19 +1,31 @@
 require 'rails_helper'
 
-describe ActiveAdmin::Filters::Humanized do
-  let(:param) { ['category_id_eq', '1'] }
-
-  subject { ActiveAdmin::Filters::Humanized.new(param) }
-
+RSpec.describe ActiveAdmin::Filters::Humanized do
   describe '#value' do
-    it 'should equal query string parameter' do
+    it 'should equal query string parameter if not an Array' do
+      param = ['category_id_eq', '1']
+      subject = ActiveAdmin::Filters::Humanized.new(param)
       expect(subject.value).to eq('1')
+    end
+
+    it 'should equal query string parameters separated by commas if an Array' do
+      param = ['category_id_eq', ['1', '2']]
+      subject = ActiveAdmin::Filters::Humanized.new(param)
+      expect(subject.value).to eq("1, 2")
+    end
+
+    it 'should remove nil values before joining equal query string parameters separated by commas if an Array' do
+      param = ['category_id_eq', ['1', nil, '2']]
+      subject = ActiveAdmin::Filters::Humanized.new(param)
+      expect(subject.value).to eq("1, 2")
     end
   end
 
   describe '#body' do
     context 'when Ransack predicate' do
       it 'parses language from Ransack' do
+        param = ['category_id_eq', '1']
+        subject = ActiveAdmin::Filters::Humanized.new(param)
         expect(subject.body).to eq('Category ID equals')
       end
 
@@ -38,6 +50,14 @@ describe ActiveAdmin::Filters::Humanized do
         param = ['name_predicate_does_not_exist', 'test']
         humanizer = ActiveAdmin::Filters::Humanized.new(param)
         expect(humanizer.body).to eq("Name Predicate Does Not Exist")
+      end
+    end
+
+    context 'when column name similar to predicate' do
+      it 'parses correct predicate' do
+        param = ['time_start_gteq', 'test']
+        humanizer = ActiveAdmin::Filters::Humanized.new(param)
+        expect(humanizer.body).to eq('Time Start greater than or equal to')
       end
     end
   end

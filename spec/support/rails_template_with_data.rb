@@ -1,34 +1,49 @@
-# Use the default
 apply File.expand_path("../rails_template.rb", __FILE__)
 
-# Register Active Admin controllers
-%w{ Post User Category }.each do |type|
+%w{Post User Category}.each do |type|
   generate :'active_admin:resource', type
 end
 
-scopes = <<-EOF
+inject_into_file 'app/admin/category.rb', <<-RUBY, after: "ActiveAdmin.register Category do\n"
+
+  if Rails::VERSION::MAJOR >= 4
+    permit_params [:name, :description]
+  end
+RUBY
+
+inject_into_file 'app/admin/user.rb', <<-RUBY, after: "ActiveAdmin.register User do\n"
+
+  if Rails::VERSION::MAJOR >= 4
+    permit_params [:first_name, :last_name, :username, :age]
+  end
+RUBY
+
+inject_into_file 'app/admin/post.rb', <<-RUBY, after: "ActiveAdmin.register Post do\n"
+
+  if Rails::VERSION::MAJOR >= 4
+    permit_params [:custom_category_id, :author_id, :title, :body, :published_date, :position, :starred]
+  end
+
   scope :all, default: true
 
   scope :drafts do |posts|
-    posts.where(["published_at IS NULL"])
+    posts.where(["published_date IS NULL"])
   end
 
   scope :scheduled do |posts|
-    posts.where(["posts.published_at IS NOT NULL AND posts.published_at > ?", Time.now.utc])
+    posts.where(["posts.published_date IS NOT NULL AND posts.published_date > ?", Time.now.utc])
   end
 
   scope :published do |posts|
-    posts.where(["posts.published_at IS NOT NULL AND posts.published_at < ?", Time.now.utc])
+    posts.where(["posts.published_date IS NOT NULL AND posts.published_date < ?", Time.now.utc])
   end
 
   scope :my_posts do |posts|
     posts.where(author_id: current_admin_user.id)
   end
-EOF
-inject_into_file 'app/admin/posts.rb', scopes , after: "ActiveAdmin.register Post do\n"
+RUBY
 
-# Setup some default data
-append_file "db/seeds.rb", <<-EOF
+append_file "db/seeds.rb", "\n\n" + <<-RUBY.strip_heredoc
   users = ["Jimi Hendrix", "Jimmy Page", "Yngwie Malmsteen", "Eric Clapton", "Kirk Hammett"].collect do |name|
     first, last = name.split(" ")
     User.create!  first_name: first,
@@ -46,14 +61,14 @@ append_file "db/seeds.rb", <<-EOF
   1_000.times do |i|
     user = users[i % users.size]
     cat = categories[i % categories.size]
-    published_at = published_at_values[i % published_at_values.size]
+    published = published_at_values[i % published_at_values.size]
     Post.create title: "Blog Post \#{i}",
                 body: "Blog post \#{i} is written by \#{user.username} about \#{cat.name}",
                 category: cat,
-                published_at: published_at,
+                published_date: published,
                 author: user,
                 starred: true
   end
-EOF
+RUBY
 
 rake 'db:seed'

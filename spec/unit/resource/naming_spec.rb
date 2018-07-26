@@ -3,7 +3,7 @@
 require 'rails_helper'
 
 module ActiveAdmin
-  describe Resource, "Naming" do
+  RSpec.describe Resource, "Naming" do
 
     before { load_defaults! }
 
@@ -111,7 +111,7 @@ module ActiveAdmin
 
       [:==, :===, :eql?].each do |method|
         it "are equivalent when compared with #{method}" do
-          expect(resource_name.public_send(method, duplicate_resource_name)).to be_truthy
+          expect(resource_name.public_send(method, duplicate_resource_name)).to eq true
         end
       end
 

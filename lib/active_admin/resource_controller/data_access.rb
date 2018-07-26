@@ -88,9 +88,9 @@ module ActiveAdmin
       def resource
         get_resource_ivar || begin
           resource = find_resource
+          resource = apply_decorations(resource)
           authorize_resource! resource
 
-          resource = apply_decorator resource
           set_resource_ivar resource
         end
       end
@@ -119,10 +119,11 @@ module ActiveAdmin
       def build_resource
         get_resource_ivar || begin
           resource = build_new_resource
+          resource = apply_decorations(resource)
+          resource = assign_attributes(resource, resource_params)
           run_build_callbacks resource
           authorize_resource! resource
 
-          resource = apply_decorator resource
           set_resource_ivar resource
         end
       end
@@ -135,7 +136,7 @@ module ActiveAdmin
       #
       # @return [ActiveRecord::Base] An un-saved active record base object
       def build_new_resource
-        scoped_collection.send method_for_build, *resource_params
+        scoped_collection.send method_for_build
       end
 
       # Calls all the appropriate callbacks and then creates the new resource.
@@ -171,11 +172,7 @@ module ActiveAdmin
       #
       # @return [void]
       def update_resource(object, attributes)
-        if object.respond_to?(:assign_attributes)
-          object.assign_attributes(*attributes)
-        else
-          object.attributes = attributes[0]
-        end
+        object = assign_attributes(object, attributes)
 
         run_update_callbacks object do
           save_resource(object)
@@ -212,11 +209,10 @@ module ActiveAdmin
 
       def apply_sorting(chain)
         params[:order] ||= active_admin_config.sort_order
-
-        order_clause = OrderClause.new params[:order]
+        order_clause = active_admin_config.order_clause.new(active_admin_config, params[:order])
 
         if order_clause.valid?
-          chain.reorder(order_clause.to_sql(active_admin_config))
+          order_clause.apply(chain)
         else
           chain # just return the chain
         end
@@ -225,16 +221,8 @@ module ActiveAdmin
       # Applies any Ransack search methods to the currently scoped collection.
       # Both `search` and `ransack` are provided, but we use `ransack` to prevent conflicts.
       def apply_filtering(chain)
-        @search = chain.ransack clean_search_params params[:q]
+        @search = chain.ransack(params[:q] || {})
         @search.result
-      end
-
-      def clean_search_params(params)
-        if params.is_a? Hash
-          params.dup.delete_if{ |key, value| value.blank? }
-        else
-          {}
-        end
       end
 
       def apply_scoping(chain)
@@ -275,16 +263,17 @@ module ActiveAdmin
       end
 
       def collection_applies(options = {})
-        only = Array(options.fetch(:only, COLLECTION_APPLIES))
+        only   = Array(options.fetch(:only, COLLECTION_APPLIES))
         except = Array(options.fetch(:except, []))
-        COLLECTION_APPLIES && only - except
+
+        COLLECTION_APPLIES & only - except
       end
 
       def per_page
         if active_admin_config.paginate
           dynamic_per_page || configured_per_page
         else
-          max_per_page
+          active_admin_config.max_per_page
         end
       end
 
@@ -293,17 +282,29 @@ module ActiveAdmin
       end
 
       def configured_per_page
-        if active_admin_config.per_page.is_a?(Array)
-          active_admin_config.per_page[0]
+        Array(active_admin_config.per_page).first
+      end
+
+      # @param resource [ActiveRecord::Base]
+      # @param attributes [Array<Hash]
+      # @return [ActiveRecord::Base] resource
+      #
+      def assign_attributes(resource, attributes)
+        if resource.respond_to?(:assign_attributes)
+          resource.assign_attributes(*attributes)
         else
-          active_admin_config.per_page
+          resource.attributes = attributes[0]
         end
+
+        resource
       end
 
-      def max_per_page
-        10_000
+      # @param resource [ActiveRecord::Base]
+      # @return [ActiveRecord::Base] resource
+      #
+      def apply_decorations(resource)
+        apply_decorator(resource)
       end
-
     end
   end
 end

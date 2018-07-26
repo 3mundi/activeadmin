@@ -10,9 +10,9 @@ Feature: Edit Page
     Given a configuration of:
     """
       ActiveAdmin.register Post do
-        if Rails::VERSION::MAJOR == 4
+        if Rails::VERSION::MAJOR >= 4
           permit_params :custom_category_id, :author_id, :title,
-            :body, :position, :published_at, :starred
+            :body, :position, :published_date, :starred
         end
       end
     """
@@ -34,7 +34,7 @@ Feature: Edit Page
     Given a configuration of:
     """
       ActiveAdmin.register Post do
-        permit_params :category, :author, :title, :body, :published_at, :starred if Rails::VERSION::MAJOR == 4
+        permit_params :category, :author, :title, :body, :published_date, :starred if Rails::VERSION::MAJOR >= 4
 
         form do |f|
           f.inputs "Your Post" do
@@ -42,7 +42,7 @@ Feature: Edit Page
             f.input :body
           end
           f.inputs "Publishing" do
-            f.input :published_at
+            f.input :published_date
           end
           f.actions
         end
@@ -63,15 +63,15 @@ Feature: Edit Page
     Given a configuration of:
     """
       ActiveAdmin.register Post do
-        permit_params :category, :author, :title, :body, :published_at, :starred if Rails::VERSION::MAJOR == 4
+        permit_params :category, :author, :title, :body, :published_date, :starred if Rails::VERSION::MAJOR >= 4
 
-        form :html => {} do |f|
+        form html: {} do |f|
           f.inputs "Your Post" do
             f.input :title
             f.input :body
           end
           f.inputs "Publishing" do
-            f.input :published_at
+            f.input :published_date
           end
           f.actions
         end
@@ -94,7 +94,7 @@ Feature: Edit Page
     Given "app/views/admin/posts/_form.html.erb" contains:
     """
       <% url = @post.new_record? ? admin_posts_path : admin_post_path(@post) %>
-      <%= active_admin_form_for @post, :url => url do |f|
+      <%= active_admin_form_for @post, url: url do |f|
             f.inputs :title, :body
             f.actions
           end %>
@@ -102,9 +102,9 @@ Feature: Edit Page
     Given a configuration of:
     """
       ActiveAdmin.register Post do
-        permit_params :category, :author, :title, :body, :published_at, :starred if Rails::VERSION::MAJOR == 4
+        permit_params :category, :author, :title, :body, :published_date, :starred if Rails::VERSION::MAJOR >= 4
 
-        form :partial => "form"
+        form partial: "form"
       end
     """
     Given I follow "Edit"

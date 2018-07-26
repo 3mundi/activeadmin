@@ -10,7 +10,7 @@ module ActiveAdmin
       end
 
       def value
-        @value
+        @value.is_a?(::Array) ? @value.compact.join(', ') : @value
       end
 
       def body
@@ -43,7 +43,7 @@ module ActiveAdmin
       end
 
       def current_predicate
-        @current_predicate ||= predicates.detect { |p| @body.include?(p) }
+        @current_predicate ||= predicates.detect { |p| @body.end_with?("_#{p}") }
       end
 
       def predicates

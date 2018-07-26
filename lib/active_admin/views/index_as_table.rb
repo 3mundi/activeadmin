@@ -52,6 +52,8 @@ module ActiveAdmin
     # end
     # ```
     #
+    # ## Defining Actions
+    #
     # To setup links to View, Edit and Delete a resource, use the `actions` method:
     #
     # ```ruby
@@ -91,7 +93,7 @@ module ActiveAdmin
     # index do
     #   column :title
     #   actions do |post|
-    #     a link_to "View", admin_post_path(post)
+    #     a "View", href: admin_post_path(post)
     #   end
     # end
     # ```
@@ -107,6 +109,18 @@ module ActiveAdmin
     #   end
     # end
     # ```
+    #
+    # In addition, you can insert the position of the row in the greater collection by using the index_column special command:
+    #
+    # ```ruby
+    # index do
+    #   selectable_column
+    #   index_column
+    #   column :title
+    # end
+    # ```
+    #
+    # index_column take an optional offset parameter to allow a developer to set the starting number for the index (default is 1).
     #
     # ## Sorting
     #
@@ -246,6 +260,12 @@ module ActiveAdmin
           end
         end
 
+        def index_column(start_value = 1)
+          column '#', class: 'col-index', sortable: false do |resource|
+            @collection.offset_value + @collection.index(resource) + start_value
+          end
+        end
+
         # Display a column for the id
         def id_column
           primary_key = if defined?(ActiveRecord)
@@ -257,6 +277,8 @@ module ActiveAdmin
           column(resource_class.human_attribute_name(primary_key), sortable: primary_key) do |resource|
             if controller.action_methods.include?('show')
               link_to resource.id, resource_path(resource), class: "resource_id_link"
+            elsif controller.action_methods.include?('edit')
+              link_to resource.id, edit_resource_path(resource), class: "resource_id_link"
             else
               resource.id
             end
@@ -284,7 +306,7 @@ module ActiveAdmin
         #
         # # Append some actions onto the end of the default actions using arbre dsl.
         # actions do |admin_user|
-        #   a link_to 'Grant Admin', grant_admin_admin_user_path(admin_user)
+        #   a 'Grant Admin', href: grant_admin_admin_user_path(admin_user)
         # end
         #
         # # Custom actions without the defaults.
@@ -333,13 +355,13 @@ module ActiveAdmin
 
         def defaults(resource, options = {})
           if controller.action_methods.include?('show') && authorized?(ActiveAdmin::Auth::READ, resource)
-            item I18n.t('active_admin.view'), resource_path(resource), class: "view_link #{options[:css_class]}"
+            item I18n.t('active_admin.view'), resource_path(resource), class: "view_link #{options[:css_class]}", title: I18n.t('active_admin.view')
           end
           if controller.action_methods.include?('edit') && authorized?(ActiveAdmin::Auth::UPDATE, resource)
-            item I18n.t('active_admin.edit'), edit_resource_path(resource), class: "edit_link #{options[:css_class]}"
+            item I18n.t('active_admin.edit'), edit_resource_path(resource), class: "edit_link #{options[:css_class]}", title: I18n.t('active_admin.edit')
           end
           if controller.action_methods.include?('destroy') && authorized?(ActiveAdmin::Auth::DESTROY, resource)
-            item I18n.t('active_admin.delete'), resource_path(resource), class: "delete_link #{options[:css_class]}",
+            item I18n.t('active_admin.delete'), resource_path(resource), class: "delete_link #{options[:css_class]}", title: I18n.t('active_admin.delete'),
               method: :delete, data: {confirm: I18n.t('active_admin.delete_confirmation')}
           end
         end

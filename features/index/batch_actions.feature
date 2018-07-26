@@ -1,5 +1,6 @@
 Feature: Batch Actions
 
+  @javascript
   Scenario: Use default (destroy) batch action
     Given 10 posts exist
     And an index configuration of:
@@ -16,10 +17,50 @@ Feature: Batch Actions
     And I follow "Batch Actions"
     Then I should see the batch action :destroy "Delete Selected"
 
-    Given I submit the batch action form with "destroy"
+    Given I click "Delete Selected" and accept confirmation
     Then I should see a flash with "Successfully destroyed 2 posts"
     And I should see 8 posts in the table
 
+  Scenario: Use default (destroy) batch action when default_url_options present
+    Given 3 posts exist
+    And an index configuration of:
+    """
+      ActiveAdmin.register Post do
+        controller do
+          protected
+
+          def default_url_options
+            { locale: I18n.locale }
+          end
+        end
+      end
+    """
+    When I check the 1st record
+    And I follow "Batch Actions"
+    Then I should see the batch action :destroy "Delete Selected"
+
+    Given I submit the batch action form with "destroy"
+    Then I should see a flash with "Successfully destroyed 1 post"
+    And I should see 2 posts in the table
+
+  Scenario: Use default (destroy) batch action on a decorated resource
+    Given 5 posts exist
+    And an index configuration of:
+    """
+      ActiveAdmin.register Post do
+        decorate_with PostDecorator
+      end
+    """
+    When I check the 2nd record
+    And I check the 4th record
+    And I follow "Batch Actions"
+    Then I should see the batch action :destroy "Delete Selected"
+
+    Given I submit the batch action form with "destroy"
+    Then I should see a flash with "Successfully destroyed 2 posts"
+    And I should see 3 posts in the table
+
+  @javascript
   Scenario: Use default (destroy) batch action on a nested resource
     Given I am logged in
     And 5 posts written by "John Doe" exist
@@ -41,9 +82,22 @@ Feature: Batch Actions
     And I follow "Batch Actions"
     Then I should see the batch action :destroy "Delete Selected"
 
-    Given I submit the batch action form with "destroy"
+    Given I click "Delete Selected" and accept confirmation
     Then I should see a flash with "Successfully destroyed 2 posts"
     And I should see 3 posts in the table
+
+  Scenario: Disable display of batch action button if all nested buttons hide
+    Given 1 post exist
+    And an index configuration of:
+    """
+      ActiveAdmin.register Post do
+        batch_action :destroy, false
+        batch_action(:flag, if: proc { false } ) do
+          render text: 42
+        end
+      end
+      """
+    Then I should not see the batch action selector
 
   Scenario: Using a custom batch action
     Given 10 posts exist
@@ -51,7 +105,7 @@ Feature: Batch Actions
       """
       ActiveAdmin.register Post do
         batch_action(:flag) do
-          redirect_to collection_path, :notice => "Successfully flagged 10 posts"
+          redirect_to collection_path, notice: "Successfully flagged 10 posts"
         end
       end
       """
@@ -87,8 +141,8 @@ Feature: Batch Actions
     And an index configuration of:
       """
       ActiveAdmin.register Post do
-        batch_action(:flag, :if => proc { true }) {}
-        batch_action(:unflag, :if => proc { false }) {}
+        batch_action(:flag, if: proc { true }) {}
+        batch_action(:unflag, if: proc { false }) {}
       end
       """
     Then I should see the batch action :flag "Flag Selected"
@@ -99,9 +153,9 @@ Feature: Batch Actions
     And an index configuration of:
       """
       ActiveAdmin.register Post do
-        batch_action(:test, :priority => 3) {}
-        batch_action(:flag, :priority => 2) {}
-        batch_action(:unflag, :priority => 1) {}
+        batch_action(:test, priority: 3) {}
+        batch_action(:flag, priority: 2) {}
+        batch_action(:unflag, priority: 1) {}
       end
       """
     Then the 4th batch action should be "Delete Selected"

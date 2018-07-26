@@ -44,13 +44,37 @@ module ActiveAdmin
         resource.class.reflect_on_all_associations.map(&:name)
       end
 
+      def format_attribute(resource, attr)
+        value = find_value resource, attr
+
+        if value.is_a?(Arbre::Element)
+          value
+        elsif boolean_attr?(resource, attr)
+          Arbre::Context.new { status_tag value }
+        else
+          pretty_format value
+        end
+      end
+
+      def find_value(resource, attr)
+        if attr.is_a? Proc
+          attr.call resource
+        elsif attr =~ /\A(.+)_id\z/ && reflection_for(resource, $1.to_sym)
+          resource.public_send $1
+        elsif resource.respond_to? attr
+          resource.public_send attr
+        elsif resource.respond_to? :[]
+          resource[attr]
+        end
+      end
+
       # Attempts to create a human-readable string for any object
       def pretty_format(object)
         case object
-        when String, Numeric, Arbre::Element
+        when String, Numeric, Symbol, Arbre::Element
           object.to_s
         when Date, Time
-          localize object, format: :long
+          localize object, format: active_admin_application.localize_format
         else
           if defined?(::ActiveRecord) && object.is_a?(ActiveRecord::Base) ||
              defined?(::Mongoid)      && object.class.include?(Mongoid::Document)
@@ -58,6 +82,17 @@ module ActiveAdmin
           else
             display_name object
           end
+        end
+      end
+
+      def reflection_for(resource, method)
+        klass = resource.class
+        klass.reflect_on_association method if klass.respond_to? :reflect_on_association
+      end
+
+      def boolean_attr?(resource, attr)
+        if resource.class.respond_to? :columns_hash
+          column = resource.class.columns_hash[attr.to_s] and column.type == :boolean
         end
       end
 

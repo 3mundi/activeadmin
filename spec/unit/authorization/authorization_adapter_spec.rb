@@ -1,13 +1,13 @@
 require 'rails_helper'
 
-describe ActiveAdmin::AuthorizationAdapter do
+RSpec.describe ActiveAdmin::AuthorizationAdapter do
 
   let(:adapter) { ActiveAdmin::AuthorizationAdapter.new(double, double) }
 
   describe "#authorized?" do
 
     it "should always return true" do
-      expect(adapter.authorized?(:read, "Resource")).to be_truthy
+      expect(adapter.authorized?(:read, "Resource")).to eq true
     end
 
   end
@@ -41,19 +41,19 @@ describe ActiveAdmin::AuthorizationAdapter do
     let(:adapter) { auth_class.new(double, double) }
 
     it "should match against a class" do
-      expect(adapter.authorized?(:read, String)).to be_truthy
+      expect(adapter.authorized?(:read, String)).to eq true
     end
 
     it 'should match against an instance' do
-      expect(adapter.authorized?(:read, "String")).to be_truthy
+      expect(adapter.authorized?(:read, "String")).to eq true
     end
 
     it 'should not match a different class' do
-      expect(adapter.authorized?(:read, Hash)).to be_falsey
+      expect(adapter.authorized?(:read, Hash)).to eq false
     end
 
     it 'should not match a different instance' do
-      expect(adapter.authorized?(:read, {})).to be_falsey
+      expect(adapter.authorized?(:read, {})).to eq false
     end
 
   end

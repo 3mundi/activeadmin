@@ -5,7 +5,7 @@ module ActiveAdmin
       builder_method :attributes_table_for
 
       def build(obj, *attrs)
-        @collection     = is_array?(obj) ? obj : [obj]
+        @collection     = Array.wrap(obj)
         @resource_class = @collection.first.class
         options = { }
         options[:for] = @collection.first if single_record?
@@ -26,7 +26,7 @@ module ActiveAdmin
         if options[:class]
           classes << options[:class]
         elsif title.present?
-          classes << "row-#{title.to_s.parameterize('_')}"
+          classes << "row-#{ActiveAdmin::Dependency.rails.parameterize(title.to_s)}"
         end
         options[:class] = classes.join(' ')
 
@@ -79,32 +79,14 @@ module ActiveAdmin
       end
 
       def content_for(record, attr)
-        value = pretty_format find_attr_value(record, attr)
+        value = helpers.format_attribute record, attr
         value.blank? && current_arbre_element.children.to_s.empty? ? empty_value : value
-      end
-
-      def find_attr_value(record, attr)
-        if attr.is_a?(Proc)
-          attr.call(record)
-        elsif attr =~ /\A(.+)_id\z/ && reflection_for(record.class, $1.to_sym)
-          record.public_send $1
-        elsif record.respond_to? attr
-          record.public_send attr
-        elsif record.respond_to? :[]
-          record[attr]
-        end
-      end
-
-      def reflection_for(klass, method)
-        klass.reflect_on_association method if klass.respond_to? :reflect_on_association
+        # Don't add the same Arbre twice, while still allowing format_attribute to call status_tag
+        current_arbre_element << value unless current_arbre_element.children.include? value
       end
 
       def single_record?
         @single_record ||= @collection.size == 1
-      end
-      
-      def is_array?(obj)
-        obj.respond_to?(:each) && obj.respond_to?(:first) && !obj.is_a?(Hash)
       end
     end
 

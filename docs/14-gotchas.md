@@ -1,4 +1,13 @@
+---
+redirect_from: /docs/14-gotchas.html
+---
 #Gotchas
+
+## Security
+
+### Spreadsheet applications vulnerable to unescaped CSV data
+
+If your CSV export includes untrusted data provided by your users, it's possible that they could include an executable formula that could call arbitrary commands on your computer. See [#4256](https://github.com/activeadmin/activeadmin/issues/4256) for more details.
 
 ## Session Commits & Asset Pipeline
 
@@ -13,7 +22,7 @@ For more information see the following post:
 
 ## Helpers
 
-There are two knowing gotchas with helpers. This hopefully will help you to
+There are two known gotchas with helpers. This hopefully will help you to
 find a solution.
 
 ### Helpers are not reloading in development
@@ -53,9 +62,9 @@ end
 
 ## CSS
 
-In order to avoid the override of your application style with the Active Admin one, you can do one of this things:
-* You can properly move the generated file `active_admin.css.scss` from `app/assets/stylesheets` to `vendor/assets/stylesheets`.
-* You can remove all `require_tree` comands from your root level css files, where the `active_admin.css.scss` is in the tree.
+In order to avoid the override of your application style with the Active Admin one, you can do one of these things:
+* You can properly move the generated file `active_admin.scss` from `app/assets/stylesheets` to `vendor/assets/stylesheets`.
+* You can remove all `require_tree` commands from your root level css files, where the `active_admin.scss` is in the tree.
 
 ## Conflicts
 
@@ -90,3 +99,21 @@ YourModel.__elasticsearch__.search
 YourModel.solr_search
 ```
 
+### Rails 5 scaffold generators
+
+Active Admin requires the `inherited_resources` gem which may break scaffolding under Rails 5 as it replaces the default scaffold generator. The solution is to configure the default controller in `config/application.rb` as outlined in [josevalim/inherited_resources#195](https://github.com/josevalim/inherited_resources/issues/195)
+
+```
+module SampleApp
+  class Application < Rails::Application
+    ...
+    config.app_generators.scaffold_controller = :scaffold_controller
+    ...
+  end
+end
+```
+
+
+## Authentication & Application Controller
+
+The `ActiveAdmin::BaseController` inherits from the `ApplicationController`. Any authentication method(s) specified in the `ApplicationController` callbacks will be called instead of the authentication method in the active admin config file. For example, if the ApplicationController has a callback `before_action :custom_authentication_method` and the config file's authentication method is `config.authentication_method = :authenticate_active_admin_user`, then `custom_authentication_method` will be called instead of `authenticate_active_admin_user`.

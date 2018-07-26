@@ -1,7 +1,7 @@
 require 'rails_helper'
 require 'active_admin/resource_collection'
 
-describe ActiveAdmin::ResourceCollection do
+RSpec.describe ActiveAdmin::ResourceCollection do
   let(:application) { ActiveAdmin::Application.new }
   let(:namespace)   { ActiveAdmin::Namespace.new application, :admin }
   let(:collection)  { ActiveAdmin::ResourceCollection.new }
@@ -149,6 +149,23 @@ describe ActiveAdmin::ResourceCollection do
 
       it "should find resource by name" do
         expect(collection[name]).to eq renamed_resource
+      end
+    end
+
+    context "with a resource and a renamed resource added in disorder" do
+      let(:resource) { ActiveAdmin::Resource.new namespace, resource_class }
+      let(:renamed_resource) do
+        ActiveAdmin::Resource.new namespace, resource_class, as: name
+      end
+      let(:name) { "Administrators" }
+
+      before do
+        collection.add renamed_resource
+        collection.add resource
+      end
+
+      it "should find a resource by class when there are two resources with that class" do
+        expect(collection[resource_class]).to eq resource
       end
     end
   end

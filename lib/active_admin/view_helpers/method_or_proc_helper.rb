@@ -18,6 +18,8 @@ module MethodOrProcHelper
       send(symbol_or_proc, *args)
     when Proc
       instance_exec(*args, &symbol_or_proc)
+    else
+      symbol_or_proc
     end
   end
 
@@ -60,6 +62,8 @@ module MethodOrProcHelper
       else
         symbol_or_proc.call(receiver, *args)
       end
+    else
+      symbol_or_proc
     end
   end
 
@@ -71,13 +75,13 @@ module MethodOrProcHelper
     case string_symbol_or_proc
     when Symbol, Proc
       call_method_or_proc_on(obj, string_symbol_or_proc, options)
-    when String
+    else
       string_symbol_or_proc
     end
   end
 
-  # This method is different from the others in that it calls `instance_exec` on the reciever,
-  # passing it the proc. This evaluates the proc in the context of the reciever, thus changing
+  # This method is different from the others in that it calls `instance_exec` on the receiver,
+  # passing it the proc. This evaluates the proc in the context of the receiver, thus changing
   # what `self` means inside the proc.
   def render_in_context(context, obj, *args)
     context = self if context.nil? # default to `self` only when nil

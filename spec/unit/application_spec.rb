@@ -1,7 +1,7 @@
 require 'rails_helper'
 require 'fileutils'
 
-describe ActiveAdmin::Application do
+RSpec.describe ActiveAdmin::Application do
 
   let(:application) do
     ActiveAdmin::Application.new.tap do |app|
@@ -49,9 +49,38 @@ describe ActiveAdmin::Application do
     expect(application.favicon).to eq false
   end
 
+  it "should return default localize format" do
+    expect(application.localize_format).to eq :long
+  end
+
+  it "should set localize format" do
+    application.localize_format = :default
+    expect(application.localize_format).to eq :default
+  end
+
   it "should set the site's favicon" do
     application.favicon = "/a/favicon.ico"
     expect(application.favicon).to eq "/a/favicon.ico"
+  end
+
+  it "should store meta tags" do
+    expect(application.meta_tags).to eq({})
+  end
+
+  it "should set meta tags" do
+    application.meta_tags = { author: "My Company" }
+    expect(application.meta_tags).to eq(author: "My Company")
+  end
+
+  it "should contains robots meta tags by default" do
+    result = application.meta_tags_for_logged_out_pages
+    expect(result).to eq(robots: "noindex, nofollow")
+  end
+
+  it "should set meta tags for logged out pages" do
+    value = { author: "My Company" }
+    application.meta_tags_for_logged_out_pages = value
+    expect(application.meta_tags_for_logged_out_pages).to eq value
   end
 
   it "should have a view factory" do
@@ -62,6 +91,10 @@ describe ActiveAdmin::Application do
     it "should allow comments by default" do
       expect(application.comments).to eq true
     end
+  end
+
+  it "should have default order clause class" do
+    expect(application.order_clause).to eq ActiveAdmin::OrderClause
   end
 
   describe "authentication settings" do

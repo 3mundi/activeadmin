@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-describe ActiveAdmin::Resource::ActionItems do
+RSpec.describe ActiveAdmin::Resource::ActionItems do
 
   let(:resource) do
     namespace = ActiveAdmin::Namespace.new(ActiveAdmin::Application.new, :admin)
@@ -25,7 +25,7 @@ describe ActiveAdmin::Resource::ActionItems do
     end
 
     it "should store the block in the action item" do
-      expect(resource.action_items.first.block).to_not be_nil
+      expect(resource.action_items.first.block).to_not eq nil
     end
 
   end

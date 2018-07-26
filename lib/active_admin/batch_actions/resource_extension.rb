@@ -51,11 +51,6 @@ module ActiveAdmin
         @batch_actions = {}
       end
 
-      # Path to the batch action itself
-      def batch_action_path(params = {})
-        [route_collection_path(params), "batch_action"].join("/")
-      end
-
       private
 
       # @return [ActiveAdmin::BatchAction] The default "delete" action

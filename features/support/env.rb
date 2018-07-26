@@ -4,7 +4,7 @@
 # instead of editing this one. Cucumber will automatically load all features/**/*.rb
 # files.
 
-ENV["RAILS_ENV"] ||= "cucumber"
+ENV['RAILS_ENV'] = 'test'
 
 require File.expand_path('../../../spec/spec_helper', __FILE__)
 
@@ -29,8 +29,7 @@ ActiveAdmin.application.load_paths = [ENV['RAILS_ROOT'] + "/app/admin"]
 
 require ENV['RAILS_ROOT'] + '/config/environment'
 
-# Setup autoloading of ActiveAdmin and the load path
-$LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
+# Setup autoloading of ActiveAdmin
 autoload :ActiveAdmin, 'active_admin'
 
 require 'cucumber/rails'
@@ -63,6 +62,9 @@ Capybara.javascript_driver = :poltergeist
 # prefer to use XPath just remove this line and adjust any selectors in your
 # steps to use the XPath syntax.
 Capybara.default_selector = :css
+
+# Make input type=hidden visible
+Capybara.ignore_hidden_elements = false
 
 # If you set this to false, any error raised from within your app will bubble
 # up to your step definition and out to cucumber unless you catch it somewhere
@@ -116,7 +118,6 @@ After do
 end
 
 Before do
-
   begin
     # We are caching classes, but need to manually clear references to
     # the controllers. If they aren't clear, the router stores references
@@ -129,6 +130,15 @@ Before do
     p $!
     raise $!
   end
+end
+
+# Force deprecations to raise an exception.
+# This would set `behavior = :raise`, but that wasn't added until Rails 4.
+ActiveSupport::Deprecation.behavior = -> message, callstack do
+  e = StandardError.new message
+  e.set_backtrace callstack.map(&:to_s)
+  puts e # sometimes Cucumber otherwise won't show the error message
+  raise e
 end
 
 # improve the performance of the specs suite by not logging anything

@@ -1,5 +1,6 @@
 Then /^I should see (\d+) ([\w]*) in the table$/ do |count, resource_type|
-  expect(all("table.index_table tr > td:first").count).to eq count.to_i
+  expect(page).to \
+    have_css("table.index_table tr > td:first-child", count: count.to_i)
 end
 
 # TODO: simplify this, if possible?
@@ -58,8 +59,6 @@ class HtmlTableToTextHelper
 end
 
 module TableMatchHelper
-
-
   # @param table [Array[Array]]
   # @param expected_table [Array[Array[String]]]
   # The expected_table values are String. They are converted to
@@ -96,11 +95,9 @@ module TableMatchHelper
       expect((cell || "").strip).to eq expected_cell
     end
   end
-
-end # module TableMatchHelper
+end
 
 World(TableMatchHelper)
-
 
 # Usage:
 #

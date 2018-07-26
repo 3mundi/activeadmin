@@ -1,3 +1,6 @@
+---
+redirect_from: /docs/1-general-configuration.html
+---
 # General Configuration
 
 You can configure Active Admin settings in `config/initializers/active_admin.rb`.
@@ -47,6 +50,15 @@ To translate Active Admin to a new language or customize an existing translation
 to your application's `config/locales` folder and update it. We welcome new/updated translations,
 so feel free to [contribute](https://github.com/activeadmin/activeadmin/blob/master/CONTRIBUTING.md)!
 To translate third party gems like devise, use for example devise-i18n.
+
+## Localize Format For Dates and Times
+
+Active Admin sets `:long` as default localize format for dates and times.
+If you want, you can customize it.
+
+```ruby
+config.localize_format = :short
+```
 
 ## Namespaces
 
@@ -120,6 +132,28 @@ ActiveAdmin.register Post do
 end
 ```
 
+You can change the name under which comments are registered:
+
+```ruby
+config.comments_registration_name = 'AdminComment'
+```
+
+You can change the order for the comments and you can change the column to be
+used for ordering:
+```ruby
+config.comments_order = 'created_at ASC'
+```
+
+You can disable the menu item for the comments index page:
+```ruby
+config.comments_menu = false
+```
+
+You can customize the comment menu:
+```ruby
+config.comments_menu = { parent: 'Admin', priority: 1 }
+```
+
 ## Utility Navigation
 
 The "utility navigation" shown at the top right normally shows the current user
@@ -137,4 +171,12 @@ ActiveAdmin.setup do |config|
     end
   end
 end
+```
+
+## Footer Customization
+
+By default, Active Admin displays a "Powered by ActiveAdmin" message on every
+page. You can override this message and show domain-specific messaging:
+```ruby
+config.footer = "MyApp Revision v1.3"
 ```

@@ -2,7 +2,7 @@ require 'parallel'
 require 'shellwords'
 
 desc "Run the full suite using parallel_tests to run on multiple cores"
-task :parallel_tests => ['parallel:setup_parallel_tests', 'parallel:spec', 'parallel:features', 'cucumber:class_reloading']
+task parallel_tests: ['parallel:setup_parallel_tests', 'parallel:spec', 'parallel:features', 'cucumber:class_reloading']
 
 namespace :parallel do
 
@@ -20,7 +20,7 @@ namespace :parallel do
   def parallel_tests_setup?
     require 'rails/version'
     database_config = File.join "spec", "rails", "rails-#{Rails::VERSION::STRING}", "config", "database.yml"
-    File.exists?(database_config) && File.read(database_config).include?("TEST_ENV_NUMBER")
+    File.exist?(database_config) && File.read(database_config).include?("TEST_ENV_NUMBER")
   end
 
   desc "Setup parallel_tests DBs"
@@ -43,13 +43,13 @@ namespace :parallel do
   end
 
   desc "Run the specs in parallel"
-  task :spec => :setup_parallel_tests do
+  task spec: :setup_parallel_tests do
     run_in_parallel "parallel_rspec spec/"
   end
 
   namespace :spec do
 
-    %w(unit integration).each do |type|
+    %w(unit request).each do |type|
       desc "Run the #{type} specs in parallel"
       task type => :setup_parallel_tests do
         run_in_parallel "parallel_rspec spec/#{type}"
@@ -59,7 +59,7 @@ namespace :parallel do
   end
 
   desc "Run the cucumber features in parallel"
-  task :features => :setup_parallel_tests do
+  task features: :setup_parallel_tests do
     run_in_parallel "parallel_cucumber features/"
   end
 

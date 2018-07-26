@@ -1,3 +1,6 @@
+---
+redirect_from: /docs/2-resource-customization.html
+---
 # Working with Resources
 
 Every Active Admin resource corresponds to a Rails model. So before creating a
@@ -30,9 +33,11 @@ end
 Any form field that sends multiple values (such as a HABTM association, or an array attribute)
 needs to pass an empty array to `permit_params`:
 
+If your HABTM is `roles`, you should permit `role_ids: []`
+
 ```ruby
 ActiveAdmin.register Post do
-  permit_params :title, :content, :publisher_id, roles: []
+  permit_params :title, :content, :publisher_id, role_ids: []
 end
 ```
 
@@ -60,6 +65,15 @@ ActiveAdmin.register Post do
     params.push :author_id if current_user.admin?
     params
   end
+end
+```
+
+If your resource is nested, declare `permit_params` after `belongs_to`:
+
+```ruby
+ActiveAdmin.register Post do
+  belongs_to :user
+  permit_params :title, :content, :publisher_id
 end
 ```
 
@@ -91,6 +105,13 @@ ActiveAdmin.register Post do
   actions :all, except: [:update, :destroy]
 end
 ```
+
+## Renaming Action Items
+
+One can set custom button name and page title for new, edit, and destroy actions/pages
+at the resource level by providing a resource specific translation.
+For example to change 'New Offer' to 'Make an Offer'
+set `active_admin.resources.offer.new_model`.
 
 ## Rename the Resource
 
@@ -295,6 +316,9 @@ end
 
 ## Customizing resource retrieval
 
+Our controllers are built on [Inherited Resources](https://github.com/josevalim/inherited_resources),
+so you can use [all of its features](https://github.com/josevalim/inherited_resources#overwriting-defaults).
+
 If you need to customize the collection properties, you can overwrite the `scoped_collection` method.
 
 ```ruby
@@ -314,14 +338,24 @@ If you need to completely replace the record retrieving code (e.g., you have a c
 ActiveAdmin.register Post do
   controller do
     def find_resource
-      Post.where(id: params[:id]).first!
+      scoped_collection.where(id: params[:id]).first!
     end
   end
 end
 ```
 
-Our controllers are built on [Inherited Resources](https://github.com/josevalim/inherited_resources),
-so you can use [all of its features](https://github.com/josevalim/inherited_resources#overwriting-defaults).
+Note that if you use an authorization library like CanCan, you should be careful to not
+write code like this, otherwise **your authorization rules won't be applied**:
+
+```ruby
+ActiveAdmin.register Post do
+  controller do
+    def find_resource
+      Post.where(id: params[:id]).first!
+    end
+  end
+end
+```
 
 ## Belongs To
 
@@ -336,7 +370,7 @@ ActiveAdmin.register Ticket do
 end
 ```
 
-Projects will be available as usual and tickets will be availble by visiting
+Projects will be available as usual and tickets will be available by visiting
 `/admin/projects/1/tickets` assuming that a Project with the id of 1 exists.
 Active Admin does not add "Tickets" to the global navigation because the routes
 can only be generated when there is a project id.
@@ -349,8 +383,8 @@ ActiveAdmin.register Project do
 
   sidebar "Project Details", only: [:show, :edit] do
     ul do
-      li link_to "Tickets",    admin_project_tickets_path(project)
-      li link_to "Milestones", admin_project_milestones_path(project)
+      li link_to "Tickets",    admin_project_tickets_path(resource)
+      li link_to "Milestones", admin_project_milestones_path(resource)
     end
   end
 end
@@ -367,7 +401,7 @@ end
 In some cases (like Projects), there are many sub resources and you would
 actually like the global navigation to switch when the user navigates "into" a
 project. To accomplish this, Active Admin stores the `belongs_to` resources in a
-seperate menu which you can use if you so wish. To use:
+separate menu which you can use if you so wish. To use:
 
 ```ruby
 ActiveAdmin.register Ticket do

@@ -1,11 +1,11 @@
 require 'rails_helper'
 
-describe ActiveAdmin::OrderClause do
-  subject { described_class.new clause }
+RSpec.describe ActiveAdmin::OrderClause do
+  subject { described_class.new(config, clause) }
 
   let(:application) { ActiveAdmin::Application.new }
-  let(:namespace)   { ActiveAdmin::Namespace.new application, :admin }
-  let(:config)      { ActiveAdmin::Resource.new namespace, Post }
+  let(:namespace) { ActiveAdmin::Namespace.new application, :admin }
+  let(:config) { ActiveAdmin::Resource.new namespace, Post }
 
   describe 'id_asc (existing column)' do
     let(:clause) { 'id_asc' }
@@ -73,7 +73,7 @@ describe ActiveAdmin::OrderClause do
     end
 
     it 'converts to sql' do
-      expect(subject.to_sql(config)).to eq %Q("hstore_col"->'field' desc)
+      expect(subject.to_sql).to eq %Q("hstore_col"->'field' desc)
     end
   end
 

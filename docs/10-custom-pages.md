@@ -1,3 +1,6 @@
+---
+redirect_from: /docs/10-custom-pages.html
+---
 # Custom Pages
 
 If you have data you want on a standalone page that isn't tied to a resource,
@@ -49,6 +52,16 @@ end
 
 See the [Menu](2-resource-customization.md#customize-the-menu) documentation.
 
+## Customize the breadcrumbs
+
+```ruby
+ActiveAdmin.register_page "Calendar" do
+  breadcrumb do
+    ['admin', 'calendar']
+  end
+end
+```
+
 ## Customize the Namespace
 
 We use the `admin` namespace by default, but you can use anything:
@@ -60,6 +73,19 @@ ActiveAdmin.register_page "Calendar", namespace: :today
 # Available at /calendar
 ActiveAdmin.register_page "Calendar", namespace: false
 ```
+
+## Belongs To
+
+To nest the page within another resource, you can use the `belongs_to` method:
+
+```ruby
+ActiveAdmin.register Project
+ActiveAdmin.register_page "Status" do
+  belongs_to :project
+end
+```
+
+See also the [Belongs To](2-resource-customization.md#belongs-to) documentation and examples.
 
 ## Add a Sidebar
 
@@ -94,3 +120,12 @@ end
 This defines the route `/admin/calendar/add_event` which can handle HTTP POST requests.
 
 Clicking on the action item will reload page and display the message "Your event was added"
+
+Page actions can handle multiple HTTP verbs.
+
+```ruby
+page_action :add_event, method: [:get, :post] do
+  # ...
+end
+```
+See also the [Custom Actions](8-custom-actions.md#http-verbs) example.

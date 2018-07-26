@@ -1,45 +1,37 @@
 require 'rails_helper'
 
-describe ActiveAdmin::ResourceController::Sidebars do
-  let(:controller){ Admin::PostsController }
+RSpec.describe ActiveAdmin::ResourceController::Sidebars, type: :controller do
+  let(:klass){ Admin::PostsController }
 
-  context 'without before_filter' do
+  shared_context 'with post config' do
     before do
-      ActiveAdmin.register Post
+      load_resources { post_config }
+
+      @controller = klass.new
+
+      get :index
     end
-
-    subject { find_before_filter controller, :skip_sidebar! }
-
-    it { is_expected.to set_skip_sidebar_to nil, for: controller }
   end
 
-  describe '#skip_sidebar!' do
-    before do
-      ActiveAdmin.register Post do
-        before_filter :skip_sidebar!
+  context 'without skip_sidebar! before filter' do
+    include_context 'with post config' do
+      let(:post_config) { ActiveAdmin.register Post }
+    end
+
+    it 'does not set @skip_sidebar' do
+      expect(controller.instance_variable_get(:@skip_sidebar)).to eq nil
+    end
+  end
+
+  context 'with skip_sidebar! before_filter' do
+    include_context 'with post config' do
+      let(:post_config) do
+        ActiveAdmin.register(Post) { before_filter :skip_sidebar! }
       end
     end
 
-    subject { find_before_filter controller, :skip_sidebar! }
-
-    it { is_expected.to set_skip_sidebar_to true, for: controller }
-  end
-
-  def find_before_filter(controller, filter)
-    #raise controller._process_action_callbacks.map(&:filter).inspect
-    controller._process_action_callbacks.detect { |f| f.raw_filter == filter.to_sym }
-  end
-
-  RSpec::Matchers.define :set_skip_sidebar_to do |expected, options|
-    match do |filter|
-      object = options[:for].new
-      object.send filter.raw_filter if filter
-      @actual = object.instance_variable_get(:@skip_sidebar)
-      expect(@actual).to eq expected
-    end
-
-    failure_message do |filter|
-      message = "expected before_filter to set @skip_sidebar to '#{expected}', but was '#{@actual}'"
+    it 'works' do
+      expect(controller.instance_variable_get(:@skip_sidebar)).to eq true
     end
   end
-end
+end unless ActiveAdmin::Dependency.rails < 4
