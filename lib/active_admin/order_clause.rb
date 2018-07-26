@@ -19,6 +19,7 @@ module ActiveAdmin
       chain.reorder(sql)
     end
 
+    def to_sql
       if defined?(::Mongoid)
         "#{@column} #{@order}"
       else
